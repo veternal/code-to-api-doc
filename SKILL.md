@@ -1,6 +1,6 @@
 ---
 name: code-to-api-doc
-version: 1.3.0
+version: 1.3.1
 description: 根据指定代码仓库或目录生成有证据的接口速览卡和 HTML 技术设计说明书。适用于代码转接口文档、接口用途与场景梳理、技术交接；速览卡固定 8 区块，说明书含 13 章与页面预览。未指定代码路径时使用当前工作目录。
 agent_created: true
 ---
@@ -9,7 +9,7 @@ agent_created: true
 
 ## 版本
 
-- 当前版本：1.3.0
+- 当前版本：1.3.1
 - 发布日期：2026-11-12
 - 配套标准：接口速览卡 V2；技术设计说明书 V2.3+。
 - 变更日志：[CHANGELOG.md](CHANGELOG.md)，为技能版本历史的唯一来源；生成文档自身的版本与变更记录另行保留。
@@ -157,6 +157,7 @@ node --test "<skill>/scripts/scan-endpoints.test.mjs" "<skill>/scripts/check-car
 
 | 文件 | 用途 |
 | --- | --- |
+| `README.md` | 面向仓库使用者的安装、触发参数、产物结构与已知边界说明 |
 | `CHANGELOG.md` | 技能版本唯一历史、变更依据及旧交付影响 |
 | `references/survey-card-standard.md` | 速览卡 V2 的区块定义、三态标注、禁词表、自检清单 |
 | `references/design-html-standard.md` | 说明书 V2.3+ 的章节结构、目录与命名、图表/安全/交互规范、Q01—Q20 |
