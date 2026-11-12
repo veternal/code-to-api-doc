@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<!--
+  main-html-skeleton.html — 技术设计说明书主 HTML 结构基线
+  来源标准: 开发计划→HTML 技术设计说明书 V2.3（见 references/design-html-standard.md）
+
+  使用方式:
+  1. 复制本文件到交付目录，改名为 {项目代号}-devplan-{YYYYMMDD}.html
+  2. 替换 <title>、文档头各字段、正文第 1—13 章
+  3. 每张图用 <pre class="diagram" data-fig="FIG01"> 存原文，同容器内放 .diagram-render 承接 SVG
+  4. 交付前把末尾结束标记 OPC_DEVPLAN_COMPLETE 保留在闭合 html 标签之后
+  5. 自检 Q01—Q20 写入文末自检表，未实际验证的项填"未验证"
+  6. FIG05 与 SRC-DEMO 是合成结构示例，必须用项目证据替换；生成器版本与文档版本分开记录
+
+  不要删除: 搜索、端筛选、复制兜底、Mermaid 逐图错误兜底、G 徽章样式。
+-->
+<html lang="zh-CN" data-diagram-mode="online-mermaid">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="code-to-api-doc 1.3.0">
+<title>{项目名称} 技术设计说明书</title>
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f8fa; --bg-code:#f2f4f7;
+    --ink:#1f2328; --ink-2:#57606a; --line:#d8dee4;
+    --brand:#1a5fb4; --brand-soft:#e8f0fb;
+    --fe:#1a5fb4; --be:#8250df; --ext:#bf6a02; --data:#1a7f37;
+    --add:#1a7f37; --mod:#bf6a02; --keep:#8b949e;
+    --danger:#b42318; --danger-soft:#fdecea;
+    --warn:#8a5a00; --warn-soft:#fff6e0;
+    --sidebar:270px; --radius:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,pre,kbd{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+
+  /* ---------- 顶栏 ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50; height:52px;
+    display:flex; align-items:center; gap:12px; padding:0 16px;
+    background:rgba(255,255,255,.96); border-bottom:1px solid var(--line);
+    backdrop-filter:saturate(180%) blur(6px);
+  }
+  .topbar .doc-id{font-weight:600;font-size:13px;color:var(--ink-2);white-space:nowrap}
+  .search-wrap{flex:1;display:flex;align-items:center;gap:6px;max-width:520px}
+  .search-wrap input{
+    flex:1;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--radius);
+    font-size:13px;background:var(--bg-soft);color:var(--ink);
+  }
+  .search-wrap input:focus{outline:2px solid var(--brand-soft);border-color:var(--brand);background:#fff}
+  .search-meta{font-size:12px;color:var(--ink-2);white-space:nowrap;min-width:56px;text-align:right}
+  .btn{
+    height:28px;padding:0 9px;border:1px solid var(--line);border-radius:5px;
+    background:#fff;color:var(--ink);font-size:12px;cursor:pointer;white-space:nowrap;
+  }
+  .btn:hover{background:var(--bg-soft);border-color:#b6bec6}
+  .btn[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:600}
+  .seg{display:flex;gap:4px}
+
+  /* ---------- 布局 ---------- */
+  .layout{display:flex;align-items:flex-start}
+  aside.toc{
+    position:sticky; top:52px; align-self:flex-start;
+    width:var(--sidebar); flex:0 0 var(--sidebar); height:calc(100vh - 52px);
+    overflow-y:auto; border-right:1px solid var(--line); padding:14px 10px 40px;
+    font-size:13px; background:var(--bg-soft);
+  }
+  aside.toc .toc-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:0 0 8px 8px}
+  aside.toc ol{list-style:none;margin:0;padding:0}
+  aside.toc li{margin:0}
+  aside.toc a{
+    display:block;padding:4px 8px;border-radius:5px;color:var(--ink-2);
+    border-left:2px solid transparent;line-height:1.5;
+  }
+  aside.toc a:hover{background:#eceff3;color:var(--ink);text-decoration:none}
+  aside.toc a.active{background:#fff;color:var(--brand);border-left-color:var(--brand);font-weight:600}
+  aside.toc .sub{padding-left:20px;font-size:12px}
+
+  main{flex:1;min-width:0;padding:26px 40px 120px;max-width:1600px;box-sizing:border-box}
+
+  /* ---------- 文档头 ---------- */
+  .doc-head{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
+  .doc-head h1{font-size:25px;margin:0 0 10px;line-height:1.35}
+  .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px 22px;font-size:13px}
+  .meta-grid div{color:var(--ink-2)}
+  .meta-grid b{color:var(--ink);font-weight:600}
+  .status-chip{
+    display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600;
+    background:var(--warn-soft);color:var(--warn);border:1px solid #f0dca8;
+  }
+  .note-na{
+    font-size:13px;color:var(--ink-2);background:var(--bg-soft);
+    border-left:3px solid var(--line);padding:7px 10px;border-radius:0 5px 5px 0;margin:8px 0 14px;
+  }
+  .issue-card{border:1px solid var(--line);border-radius:var(--radius);margin:12px 0 18px;overflow:hidden}
+  .issue-card > header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-soft);border-bottom:1px solid var(--line);font-size:14px;font-weight:600}
+  .issue-card .field-table{margin:0;border:none;border-radius:0}
+  .issue-card .field-table th{position:static;width:110px;background:#fbfcfd;border-right:1px solid var(--line);vertical-align:top;font-weight:600;color:var(--ink-2)}
+  .issue-card .field-table td{vertical-align:top}
+  .st-open{color:var(--danger);font-weight:600}
+  .st-closed{color:var(--add);font-weight:600}
+
+  /* ---------- 章节与标题 ---------- */
+  section{scroll-margin-top:64px;padding-top:6px}
+  h2{
+    font-size:20px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line);
+    display:flex;align-items:baseline;gap:8px;
+  }
+  h2 .num{color:var(--brand);font-variant-numeric:tabular-nums}
+  h3{font-size:16px;margin:22px 0 8px}
+  h4{font-size:14px;margin:16px 0 6px;color:var(--ink-2)}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:3px 0}
+
+  /* ---------- 表格 ---------- */
+  .table-scroll{overflow-x:auto;margin:10px 0 16px;border:1px solid var(--line);border-radius:var(--radius)}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
+  thead th{
+    position:sticky;top:52px;z-index:5;background:var(--bg-soft);
+    text-align:left;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  tbody td{padding:7px 10px;border-bottom:1px solid #eef1f4;vertical-align:top}
+  tbody tr:nth-child(even){background:#fbfcfd}
+  tbody tr:hover{background:var(--brand-soft)}
+  td code,p code,li code,th code{background:var(--bg-code);padding:1px 5px;border-radius:4px;font-size:12px}
+  .branch-table{table-layout:fixed;width:1494px;min-width:1494px}
+  .branch-table th,.branch-table td{white-space:normal;overflow-wrap:anywhere;word-break:normal}
+  .branch-table code{white-space:normal;overflow-wrap:anywhere}
+  .branch-table td p{margin:0 0 5px}
+  tr[id]{scroll-margin-top:70px}
+
+  /* ---------- 代码 ---------- */
+  .code-block{position:relative;margin:10px 0 16px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--bg-code)}
+  .code-block .code-head{
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+    padding:5px 10px;background:#eaeef2;font-size:12px;color:var(--ink-2);border-bottom:1px solid var(--line);
+  }
+  .code-block pre{margin:0;padding:10px 12px;overflow-x:auto;font-size:12.5px;line-height:1.6}
+  .code-block.collapsed pre{max-height:220px;overflow:hidden}
+  .copy-ok{color:var(--add);font-weight:600}
+
+  /* ---------- 徽章 ---------- */
+  .g-badge{
+    display:inline-block;padding:0 5px;border-radius:4px;font-size:12px;font-weight:600;
+    background:var(--warn-soft);color:var(--warn);border:1px solid #f0dca8;cursor:pointer;
+  }
+  .g-badge.done{background:#e6f4ea;color:var(--add);border-color:#b7e0c3}
+  .tag{display:inline-block;padding:0 6px;border-radius:4px;font-size:11.5px;border:1px solid var(--line);color:var(--ink-2);background:#fff}
+  .tag.add{border-color:#b7e0c3;color:var(--add);background:#f0f9f3}
+  .tag.mod{border-color:#f0dca8;color:var(--mod);background:#fff8ec}
+  .tag.keep{border-color:#d8dee4;color:var(--keep);background:#fafbfc}
+  .side-fe{border-left:3px solid var(--fe);padding-left:8px}
+  .side-be{border-left:3px solid var(--be);padding-left:8px}
+
+  /* ---------- 图 ---------- */
+  figure{margin:16px 0 20px;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff}
+  figcaption{font-size:12.5px;color:var(--ink-2);margin-bottom:8px}
+  figcaption b{color:var(--ink)}
+  .diagram-render{min-height:60px;overflow-x:auto;text-align:center}
+  .diagram-render svg{max-width:100%;height:auto}
+  .diagram-status{font-size:12px;color:var(--ink-2);margin-top:6px}
+  .diagram-status.err{color:var(--danger);background:var(--danger-soft);padding:6px 8px;border-radius:5px}
+  details.src{margin-top:8px;font-size:12px}
+  details.src summary{cursor:pointer;color:var(--ink-2)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--ink-2);margin:6px 0 14px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+  /* ---------- 页面预览 ---------- */
+  .page-card{border:1px solid var(--line);border-radius:var(--radius);margin:14px 0 22px;overflow:hidden}
+  .page-card header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-soft);border-bottom:1px solid var(--line);font-size:13px}
+  .page-card .frame-wrap{padding:10px;background:#fff}
+  .preview-viewport{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:var(--bg-soft);border-radius:5px;outline:1px solid var(--line)}
+  .page-card .preview-viewport iframe{position:absolute;top:0;left:0;width:1920px;height:1080px;max-width:none;border:0;background:#fff;transform-origin:top left;visibility:hidden}
+  .page-card .preview-viewport[data-preview-ready="true"] iframe{visibility:visible}
+  .page-card .missing{padding:22px;text-align:center;color:var(--warn);background:var(--warn-soft);font-size:13px}
+
+  /* ---------- 搜索高亮 ---------- */
+  mark.hit{background:#ffe58f;color:inherit;padding:0 1px;border-radius:2px}
+  mark.hit.current{background:#ffb020;outline:1px solid #d98a00}
+
+  /* ---------- 筛选 ---------- */
+  body.view-fe [data-side="backend"]{display:none}
+  body.view-be [data-side="frontend"]{display:none}
+  .hidden-by-search{display:none !important}
+
+  /* ---------- 自检表 ---------- */
+  .st-pass{color:var(--add);font-weight:600}
+  .st-fail{color:var(--danger);font-weight:600}
+  .st-na{color:var(--ink-2)}
+  .st-unv{color:var(--warn);font-weight:600}
+
+  @media (max-width:1100px){
+    aside.toc{position:static;height:auto;width:100%;flex-basis:auto;border-right:none;border-bottom:1px solid var(--line)}
+    .layout{display:block}
+    main{padding:20px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="doc-id">{项目代号} · {文档版本}</span>
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="全文搜索（含表格、代码、折叠内容）" autocomplete="off" aria-label="全文搜索">
+    <span class="search-meta" id="qMeta">—</span>
+    <button class="btn" id="qPrev" title="上一项">↑</button>
+    <button class="btn" id="qNext" title="下一项">↓</button>
+    <button class="btn" id="qClear" title="清除">✕</button>
+  </div>
+  <div class="seg" role="group" aria-label="端筛选">
+    <button class="btn" data-view="all" aria-pressed="true">全部</button>
+    <button class="btn" data-view="fe" aria-pressed="false">仅看前端</button>
+    <button class="btn" data-view="be" aria-pressed="false">仅看后端</button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li><a href="#doc-head">文档头</a></li>
+      <li><a href="#ch1">1 范围与总览</a></li>
+      <li><a href="#ch2">2 架构图</a></li>
+      <li><a href="#ch3">3 时序图</a></li>
+      <li><a href="#ch4">4 流程图</a></li>
+      <li><a href="#ch5">5 改动文件清单</a></li>
+      <li><a href="#ch6">6 接口详细案例</a></li>
+      <li class="sub"><a href="#ch6-index">6.0 接口目录</a></li>
+      <li><a href="#ch7">7 前后端分工与任务拆解</a></li>
+      <li><a href="#ch8">8 用户决策与信息缺口</a></li>
+      <li class="sub"><a href="#ch8-1">8.1 缺口清单</a></li>
+      <li class="sub"><a href="#ch8-2">8.2 ADR 决策日志</a></li>
+      <li class="sub"><a href="#ch8-3">8.3 已确认决定索引</a></li>
+      <li><a href="#ch9">9 新增配置与数据库</a></li>
+      <li><a href="#ch10">10 风险、测试与发布</a></li>
+      <li><a href="#ch11">11 前端改动页面预览</a></li>
+      <li><a href="#ch12">12 问题排查</a></li>
+      <li class="sub"><a href="#ch12-1">12.1 六类总览</a></li>
+      <li class="sub"><a href="#ch12-2">12.2 逐条记录</a></li>
+      <li><a href="#ch13">13 Vibe Coding 经验总结</a></li>
+      <li class="sub"><a href="#ch13-2">13.2 技术经验</a></li>
+      <li class="sub"><a href="#ch13-3">13.3 AI 协作经验</a></li>
+      <li><a href="#appendix">附录</a></li>
+      <li class="sub"><a href="#appendix-src">来源索引</a></li>
+      <li class="sub"><a href="#appendix-assets">产物清单</a></li>
+      <li><a href="#selfcheck">文档自检</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+  <!-- ============ 文档头 ============ -->
+  <div class="doc-head" id="doc-head">
+    <h1>{项目名称} · 技术设计说明书</h1>
+    <div class="meta-grid">
+      <div>项目 / 版本：<b>{项目}</b> / <b>{项目版本}</b></div>
+      <div>文档版本：<b>{V1.0}</b>　状态：<span class="status-chip">草稿</span></div>
+      <div>生成器：<b data-generator-version="1.3.0">code-to-api-doc 1.3.0</b></div>
+      <div>首次生成：<b>{YYYY-MM-DD HH:mm}</b>（{时区}）</div>
+      <div>最近更新：<b>{YYYY-MM-DD HH:mm}</b></div>
+      <div>输入基线：<b>{代码路径} @ {branch/commit}</b></div>
+      <div>展示端与视口：<b>桌面 Web 1920×1080</b>；1440×900 为兼容下限</div>
+      <div>图表模式：<b>online-mermaid (10.9.8)</b></div>
+      <div>覆盖范围：<b>{N 个接口 / M 个页面}</b></div>
+      <div>验证概况：<b>{已运行项 / 未验证项}</b></div>
+      <div>产物清单：<a href="#appendix-assets">见附录</a></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2);margin-top:10px">
+      本文档不代表项目技术决策已获批。文档合格不等于代码实现完成或发布获批。
+    </p>
+  </div>
+
+  <!-- ============ 变更记录（唯一） ============ -->
+  <section id="changelog">
+    <h2><span class="num">§</span>变更记录</h2>
+    <p class="note-na">本表只记录交付文档自身的版本。生成器版本单列于文档头与产物清单，不与文档版本合并。</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>版本</th><th>日期</th><th>变更内容</th><th>变更人</th><th>依据</th></tr></thead>
+        <tbody>
+          <tr><td>V1.0</td><td>{YYYY-MM-DD}</td><td>首次生成</td><td>{人/AI}</td><td>{代码基线 + 用户诉求}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--fe)"></i>前端</span>
+      <span><i style="background:var(--be)"></i>后端</span>
+      <span><i style="background:var(--ext)"></i>外部系统</span>
+      <span><i style="background:var(--data)"></i>数据存储</span>
+      <span><i style="border:2px solid var(--add);background:#fff"></i>新增</span>
+      <span><i style="border:2px dashed var(--mod);background:#fff"></i>修改</span>
+      <span><i style="border:2px solid var(--keep);background:#fff"></i>不变</span>
+    </div>
+  </section>
+
+  <!-- ============ 第 1 章 ============ -->
+  <section id="ch1">
+    <h2><span class="num">1</span>范围与总览</h2>
+    <p>{背景、目标、非目标、影响范围、前提条件。区分"现状（代码已实现）"与"拟定目标（本次要改）"。}</p>
+    <h3>1.1 术语表（全文唯一）</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>术语</th><th>含义</th><th>来源</th></tr></thead>
+        <tbody><tr><td>{术语}</td><td>{解释}</td><td>{SRC01}</td></tr></tbody>
+      </table>
+    </div>
+    <h3>1.2 来源清单</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>编号</th><th>资料</th><th>版本/commit</th><th>读取范围</th></tr></thead>
+        <tbody><tr><td>SRC01</td><td>{文件路径}</td><td>{commit/SHA-256}</td><td>{全文/第X行区间}</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 第 2 章 ============ -->
+  <section id="ch2">
+    <h2><span class="num">2</span>架构图</h2>
+    <!--
+      每张图的结构：figure[data-fig] > figcaption + .diagram-render + .diagram-status + details.src
+      原文放在 pre.diagram code 内，样式渲染结果写入 .diagram-render。
+      注意：图源禁止 click / 可执行链接 / init 指令；中文标签用 ["文本"]。
+    -->
+    <figure data-fig="FIG01">
+      <figcaption><b>图 2-1</b> 系统分层与本次变更范围｜一句话结论：{本次只在 {X} 层新增节点}</figcaption>
+      <div class="diagram-render"></div>
+      <div class="diagram-status">待渲染</div>
+      <details class="src"><summary>查看 Mermaid 图源</summary>
+        <pre class="diagram"><code>flowchart TB
+  FE["前端 {模块}"] --> GW["网关与鉴权"]
+  GW --> SVC["{后端服务}"]
+  SVC --> DB[("{数据存储}")]
+  SVC --> EXT["{外部系统}"]</code></pre>
+      </details>
+    </figure>
+
+    <h3>2.1 组件职责</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>组件</th><th>所属层</th><th>归属端</th><th>职责</th><th>本次变更</th><th>依赖组件</th><th>变更原因</th><th>来源/G-ID</th></tr></thead>
+        <tbody><tr><td>{组件}</td><td>{层}</td><td>{前端/后端/基础设施}</td><td>{职责}</td><td><span class="tag mod">修改</span></td><td>{依赖}</td><td>{原因}</td><td>SRC02</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3>2.2 关键设计说明</h3>
+    <p>{分层理由、耦合点、可扩展点、真实考虑过的备选架构及排除理由。未讨论过的只能写为方案草案。}</p>
+  </section>
+
+  <!-- ============ 第 3 章 ============ -->
+  <section id="ch3">
+    <h2><span class="num">3</span>时序图</h2>
+    <p>{至少两张：主成功链路、关键异常/补偿链路。信息不足时保留带 G-ID 的待补充框，不虚构消息。}</p>
+    <p class="note-na">使用 alt / opt 时写可判定条件及来源，不只写“异常”“允许重试”。例如合成条件 <code>opt CFG:9.1/gen.enabled == true</code>，其中引用须能定位到 <a href="#cfg-gen-enabled">9.1 对应配置</a>；真实项目需替换为实际表达式与证据。</p>
+
+    <figure data-fig="FIG03">
+      <figcaption><b>图 3-1</b> 主成功链路｜一句话结论：{同步返回点在 {位置}}</figcaption>
+      <div class="diagram-render"></div>
+      <div class="diagram-status">待渲染</div>
+      <details class="src"><summary>查看 Mermaid 图源</summary>
+        <pre class="diagram"><code>sequenceDiagram
+  participant U as 用户/前端
+  participant G as 网关
+  participant S as 后端
+  participant D as 数据层
+  U->>G: 请求
+  G->>S: 转发
+  S->>D: 读写
+  D-->>S: 结果
+  S-->>G: 响应
+  G-->>U: 返回</code></pre>
+      </details>
+    </figure>
+
+    <h3>3.1 步骤说明</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>步骤号</th><th>调用方</th><th>被调方</th><th>动作</th><th>输入</th><th>输出</th><th>失败处理</th><th>是否可重试</th><th>来源/G-ID</th></tr></thead>
+        <tbody><tr><td>S01</td><td>前端</td><td>网关</td><td>{动作}</td><td>{输入}</td><td>{输出}</td><td>{处理}</td><td>是/否/待确认</td><td>SRC03</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3>3.2 跨端契约</h3>
+    <p>{请求发起时机、loading/禁用态、失败提示、重复提交防护。补偿不等于事务回滚，分别说明。}</p>
+  </section>
+
+  <!-- ============ 第 4 章 ============ -->
+  <section id="ch4">
+    <h2><span class="num">4</span>流程图</h2>
+    <p class="note-na" id="branch-demo-note">以下 FIG05、B01—B14 及第 9 章关联项是<strong>合成结构示例，非真实项目实现或环境观测</strong>（<a href="#SRC-DEMO">SRC-DEMO</a>）。生成项目文档时整组替换，不能把示例配置、字段、错误码或日志当成事实。真实当前值待 <a href="#G01">G01</a> 核对。</p>
+    <p>示例范围仅为“收到一次重试请求后是否再次提交”。<code>STATE:retry_count</code> 表示已成功受理的重试次数，不含首次执行；从 0 起计，<code>gen.max_retry = 0</code> 表示禁止重试，次数等于上限时停止。计数缺失、NULL、负数或非整数均不默认为 0。任务执行结果和计数持久化方式不在此合成流程内。</p>
+    <figure data-fig="FIG05" id="FIG05" aria-describedby="branch-demo-note">
+      <figcaption><b>图 4-1 · FIG05</b> 合成重试判定流程｜14 条分支出边，各判断节点内互斥；缺失值、无记录、NULL 与重试边界均有去向</figcaption>
+      <div class="diagram-render"></div>
+      <div class="diagram-status">待渲染</div>
+      <details class="src"><summary>查看 Mermaid 图源</summary>
+        <pre class="diagram"><code>flowchart TD
+  A["收到生成重试请求（合成示例）"] --> B{"CFG:9.1/gen.enabled == true"}
+  B -- "B01: gen.enabled == false" --> C["返回降级页；不提交"]
+  B -- "B02: gen.enabled 缺失或不属于 true/false" --> X["拒绝本次重试；报告配置错误"]
+  B -- "B03: gen.enabled == true" --> D{"DB:9.2/program.status == ONLINE"}
+  D -- "B04: program 无记录" --> E["返回示例 404；不提交"]
+  D -- "B05: program.status == NULL" --> F["拒绝本次重试；报告数据缺口"]
+  D -- "B06: program.status == PROCESSING" --> G["返回示例 409 处理中；不提交"]
+  D -- "B07: status 非 ONLINE/PROCESSING/NULL" --> H["返回示例 409 不可重试；不提交"]
+  D -- "B08: program.status == ONLINE" --> J{"isInteger(CFG:9.1/gen.max_retry) and gen.max_retry &gt;= 0"}
+  J -- "B09: !isInteger(gen.max_retry) or gen.max_retry &lt; 0" --> X
+  J -- "B10: isInteger(gen.max_retry) and gen.max_retry &gt;= 0" --> K{"isInteger(STATE:retry_count) and retry_count &gt;= 0"}
+  K -- "B11: !isInteger(retry_count) or retry_count &lt; 0" --> Y["拒绝本次重试；报告计数错误"]
+  K -- "B12: isInteger(retry_count) and retry_count &gt;= 0" --> L{"STATE:retry_count &lt; CFG:9.1/gen.max_retry"}
+  L -- "B13: retry_count &gt;= gen.max_retry" --> M["停止自动重试；转人工处理"]
+  L -- "B14: retry_count &lt; gen.max_retry" --> N["提交一次重试任务；受理成功后计数加 1"]</code></pre>
+      </details>
+    </figure>
+
+    <h3 id="ch4-1">4.1 分支说明</h3>
+    <p>条件类型取：配置 / 数据库 / 外部依赖 / 时间·状态 / 权限·参数。期望值和当前值在同一列内独立标注；未知当前值关联 G-ID，不能用期望代替现状。图中 CFG/DB 为语义引用，实际跳转使用本表链接，不向 Mermaid 注入 click 指令。</p>
+    <div class="table-scroll" id="branch-table-scroll" role="region" aria-label="分支说明表，可横向滚动" tabindex="0">
+      <table class="branch-table" aria-describedby="branch-demo-note branch-width-note">
+        <colgroup><col style="width:72px"><col style="width:76px"><col style="width:240px"><col style="width:200px"><col style="width:130px"><col style="width:120px"><col style="width:180px"><col style="width:150px"><col style="width:140px"><col style="width:90px"><col style="width:96px"></colgroup>
+        <thead><tr><th>分支编号</th><th>条件类型</th><th>条件表达式</th><th>判断依据来源</th><th>期望值 / 当前值</th><th>缺失或空值时走向</th><th>系统行为</th><th>用户可见反馈</th><th>日志/监控埋点</th><th>对应异常码</th><th>来源或 G-ID</th></tr></thead>
+        <tbody>
+          <tr id="B01"><td><a href="#FIG05">B01</a></td><td>配置</td><td><code>gen.enabled == false</code></td><td><a href="#cfg-gen-enabled"><code>CFG:9.1/gen.enabled</code></a></td><td><p>期望值：布尔值</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>缺失/NULL/非法值 → <a href="#B02">B02</a></td><td>返回降级页，不提交任务</td><td>合成示例：功能暂不可用</td><td>合成事件：generation_disabled</td><td>示例：无异常</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B02"><td><a href="#FIG05">B02</a></td><td>配置</td><td><code>gen.enabled 缺失或不属于 true/false</code>（含 NULL）</td><td><a href="#cfg-gen-enabled"><code>CFG:9.1/gen.enabled</code></a></td><td><p>期望值：true / false</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>本分支；不把缺失当 false</td><td>拒绝本次重试并报告配置错误</td><td>合成示例：配置不可用</td><td>合成事件：invalid_config</td><td>示例：CONFIG_INVALID</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B03"><td><a href="#FIG05">B03</a></td><td>配置</td><td><code>gen.enabled == true</code></td><td><a href="#cfg-gen-enabled"><code>CFG:9.1/gen.enabled</code></a></td><td><p>期望值：true 才继续</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>缺失/NULL/非法值 → <a href="#B02">B02</a></td><td>继续判定 program 记录与状态</td><td>尚未提交任务</td><td>合成事件：generation_enabled</td><td>示例：无异常</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B04"><td><a href="#FIG05">B04</a></td><td>数据库</td><td><code>program 无记录</code>（先判断记录存在性）</td><td><a href="#db-program-status"><code>DB:9.2/program.status</code></a></td><td><p>期望值：目标记录存在</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>无记录 → 本分支；有记录但 NULL → <a href="#B05">B05</a></td><td>返回未找到，不提交任务</td><td>合成示例：目标不存在</td><td>合成事件：program_missing</td><td>示例：404</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B05"><td><a href="#FIG05">B05</a></td><td>数据库</td><td><code>program.status == NULL</code>（记录存在）</td><td><a href="#db-program-status"><code>DB:9.2/program.status</code></a></td><td><p>期望值：非空状态</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>字段 NULL → 本分支；无记录 → <a href="#B04">B04</a></td><td>拒绝重试，报告数据缺口</td><td>合成示例：状态缺失</td><td>合成事件：program_status_null</td><td>示例：STATE_MISSING</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B06"><td><a href="#FIG05">B06</a></td><td>数据库</td><td><code>program.status == PROCESSING</code>（记录存在）</td><td><a href="#db-program-status"><code>DB:9.2/program.status</code></a></td><td><p>期望值：ONLINE 才继续</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>无记录 → <a href="#B04">B04</a>；NULL → <a href="#B05">B05</a></td><td>拒绝重复提交</td><td>合成示例：仍在处理中</td><td>合成事件：program_processing</td><td>示例：409</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B07"><td><a href="#FIG05">B07</a></td><td>数据库</td><td><code>status 非 ONLINE/PROCESSING/NULL</code>（记录存在，含空字符串和其他值）</td><td><a href="#db-program-status"><code>DB:9.2/program.status</code></a></td><td><p>期望值：ONLINE 才继续</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>无记录 → <a href="#B04">B04</a>；NULL → <a href="#B05">B05</a></td><td>拒绝本次重试，不静默视为 ONLINE</td><td>合成示例：当前状态不可重试</td><td>合成事件：program_state_rejected</td><td>示例：409</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B08"><td><a href="#FIG05">B08</a></td><td>数据库</td><td><code>program.status == ONLINE</code>（记录存在）</td><td><a href="#db-program-status"><code>DB:9.2/program.status</code></a></td><td><p>期望值：ONLINE</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>无记录 → <a href="#B04">B04</a>；NULL → <a href="#B05">B05</a></td><td>继续校验重试上限</td><td>尚未提交任务</td><td>合成事件：program_online</td><td>示例：无异常</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B09"><td><a href="#FIG05">B09</a></td><td>配置</td><td><code>!isInteger(gen.max_retry) or gen.max_retry &lt; 0</code>（含缺失/NULL）</td><td><a href="#cfg-gen-max-retry"><code>CFG:9.1/gen.max_retry</code></a></td><td><p>期望值：非负整数</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>缺失/NULL/非法值 → 本分支</td><td>拒绝本次重试并报告配置错误</td><td>合成示例：配置不可用</td><td>合成事件：invalid_config</td><td>示例：CONFIG_INVALID</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B10"><td><a href="#FIG05">B10</a></td><td>配置</td><td><code>isInteger(gen.max_retry) and gen.max_retry &gt;= 0</code></td><td><a href="#cfg-gen-max-retry"><code>CFG:9.1/gen.max_retry</code></a></td><td><p>期望值：非负整数，0 合法</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>缺失/NULL/非法值 → <a href="#B09">B09</a></td><td>继续校验已受理重试次数</td><td>尚未提交任务</td><td>合成事件：retry_limit_valid</td><td>示例：无异常</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B11"><td><a href="#FIG05">B11</a></td><td>时间·状态</td><td><code>!isInteger(retry_count) or retry_count &lt; 0</code>（含缺失/NULL）</td><td><code>STATE:retry_count</code>；<a href="#branch-demo-note">本章合成输入定义</a></td><td><p>期望值：非负整数</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>缺失/NULL/非法值 → 本分支</td><td>拒绝重试，不把缺失计数当 0</td><td>合成示例：重试状态不可用</td><td>合成事件：retry_count_invalid</td><td>示例：RETRY_STATE_INVALID</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B12"><td><a href="#FIG05">B12</a></td><td>时间·状态</td><td><code>isInteger(retry_count) and retry_count &gt;= 0</code></td><td><code>STATE:retry_count</code>；<a href="#branch-demo-note">本章合成输入定义</a></td><td><p>期望值：不含首次执行</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>缺失/NULL/非法值 → <a href="#B11">B11</a></td><td>比较次数与配置上限</td><td>尚未提交任务</td><td>合成事件：retry_count_valid</td><td>示例：无异常</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B13"><td><a href="#FIG05">B13</a></td><td>配置</td><td><code>retry_count &gt;= gen.max_retry</code>（两者已校验）</td><td><code>STATE:retry_count</code> 与 <a href="#cfg-gen-max-retry"><code>CFG:9.1/gen.max_retry</code></a></td><td><p>期望值：等于上限即停止；上限 0 禁止重试</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>上限缺失 → <a href="#B09">B09</a>；计数缺失 → <a href="#B11">B11</a></td><td>停止自动重试，转人工处理</td><td>合成示例：已达重试上限</td><td>合成事件：retry_limit_reached</td><td>示例：RETRY_EXHAUSTED</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+          <tr id="B14"><td><a href="#FIG05">B14</a></td><td>配置</td><td><code>retry_count &lt; gen.max_retry</code>（两者已校验）</td><td><code>STATE:retry_count</code> 与 <a href="#cfg-gen-max-retry"><code>CFG:9.1/gen.max_retry</code></a></td><td><p>期望值：小于上限才提交</p><p>当前值：<a href="#G01">待确认 G01</a></p></td><td>上限缺失 → <a href="#B09">B09</a>；计数缺失 → <a href="#B11">B11</a></td><td>提交一次重试任务；成功受理后计数加 1，不宣称任务执行成功</td><td>合成示例：任务已受理</td><td>合成事件：retry_submitted</td><td>示例：无异常</td><td><a href="#SRC-DEMO">SRC-DEMO</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="branch-width-note" class="note-na">11 列固定宽合计 1494px：1920×1080 默认视口下应完整显示且无横滚；1440×900 为兼容下限，允许在本表容器内横向滚动，不得隐藏或裁掉列。本文正文最大外宽 1600px，左右各 40px 内边距后内容宽 1520px。</p>
+  </section>
+
+  <!-- ============ 第 5 章 ============ -->
+  <section id="ch5">
+    <h2><span class="num">5</span>改动文件清单</h2>
+
+    <h3 id="ch5-fe" data-side="frontend">5.1 前端</h3>
+    <div class="table-scroll" data-side="frontend">
+      <table>
+        <thead><tr><th>文件路径</th><th>改动类型</th><th>具体位置</th><th>改动原因</th><th>关键改动点</th><th>关联引用文件</th><th>影响面</th><th>风险</th><th>回滚方式</th><th>来源/G-ID</th></tr></thead>
+        <tbody><tr><td><code>{src/views/X.vue}</code></td><td>修改</td><td>{组件/函数}</td><td>{原因}</td><td>{改动点}</td><td>{引用}</td><td>{面}</td><td>中</td><td>{回滚}</td><td>SRC04</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3 id="ch5-be" data-side="backend">5.2 后端</h3>
+    <div class="table-scroll" data-side="backend">
+      <table>
+        <thead><tr><th>文件路径</th><th>改动类型</th><th>具体位置</th><th>改动原因</th><th>关键改动点</th><th>关联引用文件</th><th>影响面</th><th>风险</th><th>回滚方式</th><th>来源/G-ID</th></tr></thead>
+        <tbody><tr><td><code>{XController.java}</code></td><td>修改</td><td>{方法}</td><td>{原因}</td><td>{改动点}</td><td>{引用}</td><td>{面}</td><td>高</td><td>{回滚}</td><td>SRC05</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3>5.3 易漏项核对</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>易漏项</th><th>判定</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>类型声明 / DTO</td><td>适用</td><td>{说明}</td></tr>
+          <tr><td>路由与权限</td><td>适用</td><td>{说明}</td></tr>
+          <tr><td>常量与枚举</td><td>待确认</td><td>{说明}</td></tr>
+          <tr><td>国际化 / mock 与单测 / API 文档 / ORM 映射 / 构建部署 / 日志埋点 / 缓存 key</td><td>不适用</td><td>{理由}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>{每端表后写按依赖自底向上的改动顺序建议。}</p>
+  </section>
+
+
+  <!-- ============ 第 6 章 ============ -->
+  <section id="ch6">
+    <h2><span class="num">6</span>接口详细案例</h2>
+
+    <h3 id="ch6-index">6.0 接口目录</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>API-ID</th><th>接口名</th><th>方法</th><th>路径</th><th>接口用途</th><th>使用场景摘要</th><th>归属端</th><th>来源/G-ID</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>API01</td><td>{接口名}</td><td>POST</td><td><code>{/api/v1/x}</code></td>
+            <td>{解决什么业务问题、产生什么结果}</td><td>{典型场景、触发时机、主要调用方}</td>
+            <td>后端</td><td>SRC02</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="api01">API01 · {接口名}</h3>
+
+    <h4>6.1 接口定位</h4>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>项</th><th>内容</th></tr></thead>
+        <tbody>
+          <tr><td>接口用途</td><td>{业务问题 + 产生的结果；依据代码或契约，不得凭接口名猜测}</td></tr>
+          <tr><td>使用场景</td><td>{典型业务场景、触发时机、主要调用方}</td></tr>
+          <tr><td>使用条件</td><td>{前置条件、权限、数据或状态依赖、频率与并发约束}</td></tr>
+          <tr><td>不适用场景与误用风险</td><td>{易误用方式及后果，替代入口}</td></tr>
+          <tr><td>关联需求/页面/任务</td><td>{PAGE01 / T01}</td></tr>
+          <tr><td>来源</td><td>SRC03 第 X 行</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>6.2 契约</h4>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>API-ID</th><th>版本</th><th>鉴权方式</th><th>Content-Type</th><th>幂等键</th><th>超时</th><th>限流</th><th>归属服务</th><th>来源</th></tr></thead>
+        <tbody><tr><td>API01</td><td>{v1}</td><td>{JWT}</td><td>application/json</td><td>{idempotencyKey}</td><td>{3s}</td><td>{—}</td><td>{svc}</td><td>SRC03</td></tr></tbody>
+      </table>
+    </div>
+
+    <h4>6.3 案例（正常 / 边界 / 异常）</h4>
+    <div class="code-block">
+      <div class="code-head"><span>curl · 正常</span><button class="btn copy-btn">复制</button></div>
+      <pre><code class="lang-bash">curl -X POST "${API_BASE_URL}/api/v1/x" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{}'</code></pre>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2)">标注：合成示例，非实测响应。变量由调用者在授权环境提供。</p>
+  </section>
+
+  <!-- ============ 第 7 章 ============ -->
+  <section id="ch7">
+    <h2><span class="num">7</span>前后端分工与任务拆解</h2>
+    <p class="note-na">本章不生成排期：不写工期、人天、里程碑、迭代计划与人员分配。任务只写"做什么 + 怎么算做完"。</p>
+    <p class="note-na">第 10 章的责任人仅用于风险跟进，不构成任务人员分配；只记录有依据的人或角色，未知时关联 G-ID，不替项目指派人员。</p>
+    <p>{标注契约冻结点、可并行项、阻塞项与解除条件。任务引用 API-ID、G-ID、D-ID、文件、测试条目。}</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>任务ID</th><th>归属端</th><th>任务描述（做什么 + 怎么算做完）</th><th>依赖任务</th><th>交付物</th><th>验收标准</th><th>可否并行</th><th>来源/G-ID</th></tr></thead>
+        <tbody>
+          <tr><td>T01</td><td>后端</td><td>{描述}</td><td>—</td><td>API01</td><td>{标准}</td><td>是/否</td><td>SRC05</td></tr>
+          <tr><td>T02</td><td>前端</td><td>{描述}</td><td>T01</td><td>PAGE01</td><td>{标准}</td><td>否（等契约冻结）</td><td>SRC04</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 第 8 章 ============ -->
+  <section id="ch8">
+    <h2><span class="num">8</span>用户决策与信息缺口</h2>
+    <h3 id="ch8-1">8.1 唯一缺口清单</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>G-ID</th><th>缺失或冲突内容</th><th>来源及定位</th><th>影响范围</th><th>是否阻塞</th><th>建议值及依据</th><th>决策人</th><th>状态</th><th>对应 D-ID</th></tr>
+        </thead>
+        <tbody>
+          <tr id="G01">
+            <td>G01</td><td>项目真实分支、配置/字段定义及环境当前值尚未提供；当前 FIG05 为合成示例</td><td><a href="#SRC-DEMO">SRC-DEMO</a>；待提供真实代码与环境证据</td><td>第 3、4、9 章及实际实施判断</td><td>是</td>
+            <td>不以示例值代替现状；由项目方提供真实定义和授权环境核对结果</td><td>待指定</td><td>未解决</td><td><a href="#D01">D01</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 id="ch8-2">8.2 ADR 决策日志</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>D-ID</th><th>对应 G-ID</th><th>决策议题</th><th>备选方案及优劣</th><th>最终决定</th><th>状态</th><th>确认时间与依据</th></tr></thead>
+        <tbody><tr id="D01"><td>D01</td><td><a href="#G01">G01</a></td><td>项目真实分支与配置/数据映射</td><td>真实资料未提供，不虚构备选方案</td><td>待定；合成示例不构成决定</td><td>待决策</td><td>未确认</td></tr></tbody>
+      </table>
+    </div>
+    <h3 id="ch8-3">8.3 已确认 / 已冻结决定索引</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>D-ID</th><th>决定摘要</th><th>确认日期</th><th>冻结日期</th><th>依据</th></tr></thead>
+        <tbody><tr><td>—</td><td>暂无已确认决定</td><td>—</td><td>未冻结</td><td>—</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 第 9 章 ============ -->
+  <section id="ch9">
+    <h2><span class="num">9</span>新增配置与数据库变更</h2>
+
+    <h3 id="ch9-1">9.1 配置项</h3>
+    <p class="note-na">下列 key 仅登记 <a href="#FIG05">FIG05 合成示例</a> 使用的名称，不是项目真实新增配置。真实默认值、建议值和示例值必须分开；环境当前值未读取时引用 G-ID。每项反链到分支，若只取值不参与判定应明确写出。</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>配置 key</th><th>所属服务/文件</th><th>类型</th><th>默认值</th><th>dev</th><th>test</th><th>prod</th><th>热生效</th><th>用途与必要性</th><th>不配置/配错后果</th><th>审批</th><th>回滚</th><th>影响的分支/图号</th><th>来源/G-ID</th></tr></thead>
+        <tbody>
+          <tr id="cfg-gen-enabled"><td><code>gen.enabled</code></td><td>合成重试流程；真实服务/文件 <a href="#G01">待确认 G01</a></td><td>示例：boolean</td><td>示例无默认值；真实默认 <a href="#G01">待确认 G01</a></td><td><a href="#G01">待确认 G01</a></td><td><a href="#G01">待确认 G01</a></td><td><a href="#G01">待确认 G01</a></td><td><a href="#G01">待确认 G01</a></td><td>示例：控制是否进入数据状态判断</td><td>示例：缺失/NULL/非法值 → <a href="#B02">B02</a>，不默认降级</td><td><a href="#G01">待确认 G01</a></td><td>真实方案 <a href="#G01">待确认 G01</a></td><td><a href="#FIG05">FIG05</a>：<a href="#B01">B01</a> / <a href="#B02">B02</a> / <a href="#B03">B03</a></td><td><a href="#SRC-DEMO">SRC-DEMO</a>；<a href="#G01">G01</a></td></tr>
+          <tr id="cfg-gen-max-retry"><td><code>gen.max_retry</code></td><td>合成重试流程；真实服务/文件 <a href="#G01">待确认 G01</a></td><td>示例：非负整数</td><td>示例无默认值；0 表示不允许重试，非默认值</td><td><a href="#G01">待确认 G01</a></td><td><a href="#G01">待确认 G01</a></td><td><a href="#G01">待确认 G01</a></td><td><a href="#G01">待确认 G01</a></td><td>示例：限制已受理重试次数，不含首次执行</td><td>示例：缺失/NULL/非整数/负数 → <a href="#B09">B09</a></td><td><a href="#G01">待确认 G01</a></td><td>真实方案 <a href="#G01">待确认 G01</a></td><td><a href="#FIG05">FIG05</a>：<a href="#B09">B09</a> / <a href="#B10">B10</a> / <a href="#B13">B13</a> / <a href="#B14">B14</a></td><td><a href="#SRC-DEMO">SRC-DEMO</a>；<a href="#G01">G01</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2)">实际默认值、建议默认值、示例值必须区分；敏感值只写引用名与托管位置。</p>
+
+    <h3 id="ch9-2">9.2 数据库</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>表名</th><th>字段名</th><th>类型</th><th>可空</th><th>默认值</th><th>索引</th><th>业务含义</th><th>参与的判定分支</th><th>来源/G-ID</th></tr></thead>
+        <tbody><tr id="db-program-status"><td><code>program</code></td><td><code>status</code></td><td>合成状态值；真实类型 <a href="#G01">待确认 G01</a></td><td>示例处理 NULL；真实约束 <a href="#G01">待确认 G01</a></td><td>不推测默认值；<a href="#G01">待确认 G01</a></td><td>真实查询与索引 <a href="#G01">待确认 G01</a></td><td>合成示例：先区分无记录，再区分 NULL、PROCESSING、ONLINE 与其他值；只在 ONLINE 时继续</td><td><a href="#FIG05">FIG05</a>：<a href="#B04">B04</a> / <a href="#B05">B05</a> / <a href="#B06">B06</a> / <a href="#B07">B07</a> / <a href="#B08">B08</a>；只存不判的真实字段须另注明</td><td><a href="#SRC-DEMO">SRC-DEMO</a>；<a href="#G01">G01</a></td></tr></tbody>
+      </table>
+    </div>
+    <p>{DDL 前提与方言、索引理由、数据量估计及依据、历史数据兼容与回填、执行顺序、回滚/前滚、锁表影响、慢查询风险。破坏性变更不得承诺仅靠反向 DDL 无损回滚。}</p>
+
+    <h3 id="ch9-4">9.3 必要性与其他基础设施</h3>
+    <p>{对每个新增项回答"不新增它会怎样"。缓存 key、MQ topic、定时任务、对象存储路径、权限白名单、第三方密钥托管逐项列出。无变更时明确依据并保留本章。}</p>
+  </section>
+
+  <!-- ============ 第 10 章 ============ -->
+  <section id="ch10">
+    <h2><span class="num">10</span>风险、测试与发布</h2>
+
+    <h3 id="ch10-1">10.1 风险</h3>
+    <p class="note-na">责任人指有依据的风险跟进人或角色；未知写「待确认 Gxx」。本表不承担第 7 章的任务人员分配或排期。</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>风险</th><th>触发条件</th><th>影响</th><th>概率及依据</th><th>缓解措施</th><th>降级方案</th><th>监控埋点</th><th>责任人</th><th>来源/G-ID</th></tr></thead>
+        <tbody><tr><td>{风险}</td><td>{条件}</td><td>{影响}</td><td>{概率/依据}</td><td>{缓解}</td><td>{降级}</td><td>{埋点}</td><td>{已确认的风险跟进人或角色 / 待确认 Gxx}</td><td>{来源/G-ID}</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3 id="ch10-2">10.2 测试矩阵</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>用例ID</th><th>关联</th><th>类型</th><th>前置条件</th><th>步骤</th><th>预期结果</th><th>实际结果</th><th>证据</th><th>状态</th></tr></thead>
+        <tbody><tr><td>TC01</td><td>API01</td><td>正常</td><td>{前置}</td><td>{步骤}</td><td>{预期}</td><td>未执行</td><td>—</td><td class="st-unv">未验证</td></tr></tbody>
+      </table>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2)">未执行用例的实际结果写"未执行"，不能预填通过。类型取值：正常/边界/异常/并发/幂等/兼容/回归。</p>
+
+    <h3 id="ch10-3">10.3 发布与回滚</h3>
+    <p>{发布前提、灰度步骤、监控阈值、停止条件、回滚步骤及验证方法。缺失阈值引用 G-ID。区分文档验收、实现测试、发布批准。}</p>
+  </section>
+
+  <!-- ============ 第 11 章 ============ -->
+  <section id="ch11">
+    <h2><span class="num">11</span>前端改动页面预览效果</h2>
+    <p>{说明页面全集是如何核对的：路由 + 改动文件清单 + 共享组件影响范围交叉。移动端仅在用户明确要求时出现。}</p>
+
+    <div class="page-card" data-side="frontend">
+      <header>
+        <span><b>PAGE01</b> · {页面名称}　<span class="tag mod">修改</span>　{路由}</span>
+        <a class="btn" href="preview-PAGE01-default-desktop.html" target="_blank" rel="noopener">独立打开预览</a>
+      </header>
+      <div class="frame-wrap">
+        <div class="preview-viewport" data-preview-width="1920" data-preview-height="1080" aria-label="PAGE01：1920×1080 等比预览">
+          <iframe src="preview-PAGE01-default-desktop.html" width="1920" height="1080" title="PAGE01 桌面设计预览，原始视口 1920×1080" loading="lazy"></iframe>
+        </div>
+        <noscript><style>.preview-viewport{display:none}</style><p class="note-na">JavaScript 已关闭，无法在正文内等比缩放。请<a href="preview-PAGE01-default-desktop.html" target="_blank" rel="noopener">独立打开 PAGE01 预览</a>，按 1920×1080 默认视口查看。</p></noscript>
+      </div>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2)">
+      标注：设计预览／尚未实现。合成数据，不连接真实接口。预览文件需实际生成在同目录；正文按 1920×1080 等比缩放，1440×900 为兼容下限。独立链接不依赖缩放脚本。
+    </p>
+
+    <h3 id="ch11-matrix">11.3 状态覆盖矩阵</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>PAGE-ID</th><th>STATE-ID</th><th>触发条件</th><th>状态名称</th><th>预览锚点/文件</th><th>生成状态</th><th>验证状态</th></tr></thead>
+        <tbody>
+          <tr><td>PAGE01</td><td>STATE01</td><td>默认进入</td><td>正常</td><td>#ch11</td><td>已生成</td><td>未验证</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 第 12 章 ============ -->
+  <section id="ch12">
+    <h2><span class="num">12</span>问题排查</h2>
+    <p class="note-na">本章只记录实际发生过的问题。没有发生过的写"否 + 依据"，不要把通用报错搬进来凑数。价值在于"下次遇到同样报错能直接照做的命令"，不在于条目多。</p>
+
+    <h3 id="ch12-1">12.1 六类总览</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>类别</th><th>本次是否发生</th><th>对应记录</th><th>依据</th></tr></thead>
+        <tbody>
+          <tr><td>安装失败</td><td>是</td><td><a href="#ISSUE01">ISSUE01</a></td><td>{证据：哪条命令、哪次构建}</td></tr>
+          <tr><td>版本冲突</td><td>否</td><td>—</td><td>{依据：如依赖锁定在 lockfile，CI 安装连续通过}</td></tr>
+          <tr><td>网络问题</td><td>否</td><td>—</td><td>{依据}</td></tr>
+          <tr><td>权限问题</td><td>否</td><td>—</td><td>{依据}</td></tr>
+          <tr><td>API 问题</td><td>未涉及</td><td>—</td><td>{范围依据}</td></tr>
+          <tr><td>部署问题</td><td>未涉及</td><td>—</td><td>{范围依据}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2)">判定只取：是｜否｜未涉及。"否"必须给依据，"未涉及"只用于本章范围外。</p>
+
+    <h3 id="ch12-2">12.2 逐条记录</h3>
+
+    <div class="issue-card" id="ISSUE01">
+      <header>
+        <span>ISSUE01 · {问题名称}</span>
+        <span class="st-closed">已解决</span>
+      </header>
+      <div class="table-scroll">
+        <table class="field-table">
+          <tbody>
+            <tr><th>现象</th><td>{什么操作、什么环境（OS / 版本 / 分支）、观察到什么。写"看起来怎样"，不写猜测}</td></tr>
+            <tr><th>错误信息</th><td><code>{原文粘贴关键行 + 退出码；凭据与内网地址脱敏；长日志截取首尾并注明省略}</code></td></tr>
+            <tr><th>原因分析</th><td>{根因，不是症状复述。区分「已确认根因」与「推测原因」，推测要写排除过程}</td></tr>
+            <tr><th>解决方法</th><td>{实际做了什么；试过无效的方案也写，注明无效}</td></tr>
+            <tr><th>执行命令</th><td>
+              <div class="code-block" style="margin:0">
+                <div class="code-head"><span>bash</span><button class="btn copy-btn">复制</button></div>
+                <pre><code class="lang-bash">${COMMAND} --flag ${VALUE}</code></pre>
+              </div>
+            </td></tr>
+            <tr><th>最终结果</th><td>{验证通过的具体表现 + 验证方式：哪条命令 / 哪个页面 / 哪个断言}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p style="font-size:12.5px;color:var(--ink-2)">
+      规则：ISSUE-ID 唯一不复用不删除；错误信息必须真实或注明"未留存"；执行命令可直接复制；
+      最终结果不能只写"已修复"；未解决标 <span class="st-open">未解决</span> 并关联 G-ID；
+      已解决但改变设计口径的，同步回第 3—6、9 章。
+    </p>
+  </section>
+
+  <!-- ============ 第 13 章 ============ -->
+  <section id="ch13">
+    <h2><span class="num">13</span>Vibe Coding 经验总结</h2>
+    <p class="note-na">本章沉淀本次真实协作过程，不是教程。每条要有本次实例或代码证据；没有素材就写"本次未沉淀 + 原因"，不写正确但无用的套话。</p>
+
+    <h3 id="ch13-1">13.1 总结</h3>
+    <p>{3—5 句：哪些环节 AI 一次做对，哪些反复返工，返工根因是需求描述不清、上下文不足还是缺少验证手段。归因要能对应到具体 ISSUE 或 13.2 的条目。}</p>
+
+    <h3 id="ch13-2">13.2 技术经验</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>类型</th><th>内容</th><th>依据 / 本次实例</th></tr></thead>
+        <tbody>
+          <tr><td>推荐方案</td><td>{验证有效、下次可直接照用的做法}</td><td>{代码位置或现象}</td></tr>
+          <tr><td>失败方案</td><td>{试过但不可行、或代价过高的做法，写清为什么不行}</td><td>{报错或后果}</td></tr>
+          <tr><td>最佳实践</td><td>{可迁移到下个项目的规则，写清适用边界}</td><td>{为什么}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2)">三类各至少 1 条；「失败方案」不能省略。本次确实没有失败尝试时写"本次未出现返工，原因是 {具体原因}"，不要编一条凑数。</p>
+
+    <h3 id="ch13-3">13.3 AI 协作经验</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>问题</th><th>本次做法</th><th>可复用结论</th></tr></thead>
+        <tbody>
+          <tr><td>如何描述需求</td><td>{给了 AI 什么信息、什么写法有效、什么写法导致跑偏}</td><td>{下次怎么写}</td></tr>
+          <tr><td>如何拆解任务</td><td>{拆到什么粒度、先后顺序怎么定、哪些任务不该拆}</td><td>{下次怎么拆}</td></tr>
+          <tr><td>如何定位 Bug</td><td>{给 AI 什么证据最有效：原始报错、最小复现、日志片段、截图}</td><td>{下次给什么}</td></tr>
+          <tr><td>如何验证代码</td><td>{本次实际用过的验证手段：命令、断言、页面、回归清单}</td><td>{下次怎么验}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-2)">四项都要填，无经验写"本次未形成方法 + 原因"，不留空、不套模板。"如何验证代码"最易写空话，必须给出本次实际用过的验证手段。</p>
+  </section>
+
+  <!-- ============ 附录 ============ -->
+  <section id="appendix">
+    <h2><span class="num">附录</span></h2>
+    <h3 id="appendix-src">A. 来源与参考资料</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>编号</th><th>资料</th><th>版本/日期</th><th>位置</th><th>被引用章节</th></tr></thead>
+        <tbody>
+          <tr><td>SRC01</td><td>{文件}</td><td>{commit}</td><td>{路径:行}</td><td>§6, §9</td></tr>
+          <tr id="SRC-DEMO"><td>SRC-DEMO</td><td>code-to-api-doc 骨架合成结构示例，非项目证据</td><td>生成器 1.3.0</td><td>本文件 <a href="#FIG05">FIG05</a>、<a href="#ch4-1">分支表</a> 与 <a href="#ch9">第 9 章</a></td><td>§3 条件写法提示、§4、§9；生成实际文档时整组替换并登记真实来源</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="appendix-assets">B. 产物清单</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>文件名</th><th>类型</th><th>用途</th><th>关联章节</th><th>打开方式</th><th>生成状态</th><th>生成版本 / 来源</th><th>验证状态</th></tr></thead>
+        <tbody>
+          <tr><td>{项目}-devplan-{日期}.html</td><td>主 HTML</td><td>阅读入口</td><td>全部</td><td>浏览器打开</td><td>已生成</td><td data-generator-version="1.3.0">code-to-api-doc 1.3.0 / main-html-skeleton.html；文档版本见文档头</td><td>未验证</td></tr>
+          <tr><td>preview-PAGE01-default-desktop.html</td><td>预览</td><td>PAGE01</td><td>§11</td><td>浏览器打开</td><td>{实际生成状态}</td><td>{实际生成器版本与来源}</td><td>未验证</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 文档自检 ============ -->
+  <section id="selfcheck">
+    <h2><span class="num">自检</span>文档自检（Q01—Q20）</h2>
+    <p style="font-size:13px;color:var(--ink-2)">状态只取：通过｜不通过｜未验证｜不适用。静态核对只能证明结构与引用；图表渲染、搜索、复制、预览、离线能力必须依据实际运行结果。</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>检查ID</th><th>检查内容</th><th>判定标准</th><th>状态</th><th>证据/定位</th><th>未通过或未验证原因</th></tr></thead>
+        <tbody>
+          <tr><td>Q01</td><td>结构完整</td><td>文档头、1—13 章、附录、自检齐全，目录可定位；第 7 章不含排期</td><td class="st-unv">未验证</td><td>{填写}</td><td>{原因}</td></tr>
+          <tr><td>Q02</td><td>表格</td><td>规定列齐全，未知用 G-ID</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q03</td><td>来源</td><td>现状/目标/建议/决定分清，无编造</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q04</td><td>追溯</td><td>G/D 唯一、一对一映射、无悬空锚点</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q05</td><td>一致性</td><td>决定已同步各章，变更记录唯一</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q06</td><td>图意</td><td>图编号/分支/说明表/图例对应</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q07</td><td>图表运行</td><td>实际浏览器渲染验证</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q08</td><td>模式</td><td>online 锁版本 / offline 断网验证</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q09</td><td>交互</td><td>搜索、筛选、复制均有实测</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q10</td><td>页面预览</td><td>所有受影响 PAGE-ID 有可见预览</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q11</td><td>接口与数据</td><td>定位表有依据，三类案例齐全</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q12</td><td>安全</td><td>无真实凭据，SVG 无禁止元素</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q13</td><td>实施准备</td><td>任务/测试/发布/回滚可追溯</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q14</td><td>交付完整</td><td>目录平铺、无重复 ID、结束标记与清单齐全</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q15</td><td>证据诚实</td><td>通过项有实际证据</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q16</td><td>桌面默认</td><td>默认桌面 1920×1080，预览等比完整；1440×900 为兼容下限，允许容器横滚但不裁内容；移动端仅按明确要求</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q17</td><td>资源可搬运</td><td>只用同目录相对引用，临时更名可用</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q18</td><td>问题排查</td><td>六类逐类有结论，"否"有依据；每条 ISSUE 六字段齐全；报错真实；命令可复制；结果带验证方式；未解决已标并关联 G-ID</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q19</td><td>经验总结</td><td>技术经验三类各 ≥1 条且失败方案未省略；AI 协作四项已填；13.1 归因可对应具体条目；无通用套话</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+          <tr><td>Q20</td><td>分支条件可判定</td><td>菱形/边和 alt/opt 条件可还原，CFG/DB key 与第 9 章逐字一致且双向引用；缺失/NULL/其他值及边界有去向；期望值与当前值独立标注；1920×1080 下 11 列表无横滚或截断，1440×900 兼容下限允许容器内横滚</td><td class="st-unv">未验证</td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 1. 目录高亮跟随 ---------- */
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('aside.toc a'));
+  var sections = tocLinks
+    .map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); })
+    .filter(Boolean);
+
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      tocLinks.forEach(function (a) {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
+      });
+    });
+  }, { rootMargin: '-64px 0px -70% 0px', threshold: 0 });
+  sections.forEach(function (s) { obs.observe(s); });
+
+  /* ---------- 2. 复制（含兜底） ---------- */
+  document.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('.copy-btn');
+    if (!btn) return;
+    var block = btn.closest('.code-block');
+    var code = block ? block.querySelector('code') : null;
+    if (!code) return;
+    var text = code.textContent;
+
+    function done() {
+      var old = btn.textContent;
+      btn.textContent = '已复制';
+      btn.classList.add('copy-ok');
+      setTimeout(function () { btn.textContent = old; btn.classList.remove('copy-ok'); }, 1400);
+    }
+    function fallback() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        var okFlag = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (okFlag) done();
+        else manual();
+      } catch (e) { manual(); }
+    }
+    function manual() {
+      btn.textContent = '请手动复制';
+      setTimeout(function () { btn.textContent = '复制'; }, 1800);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  /* ---------- 3. 端筛选 ---------- */
+  var viewBtns = Array.prototype.slice.call(document.querySelectorAll('[data-view]'));
+  function setView(v) {
+    document.body.classList.toggle('view-fe', v === 'fe');
+    document.body.classList.toggle('view-be', v === 'be');
+    viewBtns.forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === v));
+    });
+    schedulePreviewResize();
+  }
+  viewBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (searchLocked) return;
+      setView(b.getAttribute('data-view'));
+    });
+  });
+
+  /* ---------- 4. 全文搜索（文本节点替换，不破坏结构） ---------- */
+  var q = document.getElementById('q');
+  var qMeta = document.getElementById('qMeta');
+  var hits = [];
+  var cur = -1;
+  var searchLocked = false;
+  var prevView = 'all';
+
+  function clearMarks() {
+    var marks = Array.prototype.slice.call(document.querySelectorAll('mark.hit'));
+    marks.forEach(function (m) {
+      var t = document.createTextNode(m.textContent);
+      if (m.parentNode) m.parentNode.replaceChild(t, m);
+    });
+    hits = [];
+    cur = -1;
+    // 合并相邻文本节点，避免碎片累积
+    var hosts = document.querySelectorAll('p,li,td,th,h1,h2,h3,h4,figcaption,span');
+    hosts.forEach(function (h) { if (h.normalize) h.normalize(); });
+  }
+
+  function walkTextNodes(root, cb) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var p = n.parentNode;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        var tag = p.nodeName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'MARK' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var n;
+    while ((n = walker.nextNode())) cb(n);
+  }
+
+  function runSearch(term) {
+    clearMarks();
+    if (!term) { qMeta.textContent = '—'; return; }
+
+    var lower = term.toLowerCase();
+    var targets = [];
+    walkTextNodes(document.querySelector('main'), function (n) {
+      if (n.nodeValue.toLowerCase().indexOf(lower) !== -1) targets.push(n);
+    });
+
+    targets.forEach(function (n) {
+      var val = n.nodeValue;
+      var lowVal = val.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var i = 0, j;
+      while ((j = lowVal.indexOf(lower, i)) !== -1) {
+        if (j > i) frag.appendChild(document.createTextNode(val.slice(i, j)));
+        var m = document.createElement('mark');
+        m.className = 'hit';
+        m.textContent = val.slice(j, j + term.length);
+        frag.appendChild(m);
+        hits.push(m);
+        i = j + term.length;
+      }
+      if (i < val.length) frag.appendChild(document.createTextNode(val.slice(i)));
+      n.parentNode.replaceChild(frag, n);
+    });
+
+    // 展开命中的折叠区
+    if (hits.length) {
+      var hosts = new Set();
+      hits.forEach(function (m) {
+        var p = m.parentNode;
+        while (p && p !== document.body) {
+          if (p.tagName === 'DETAILS') hosts.add(p);
+          p = p.parentNode;
+        }
+      });
+      hosts.forEach(function (d) { d.open = true; });
+    }
+
+    qMeta.textContent = hits.length ? '1/' + hits.length : '0';
+    if (hits.length) { cur = 0; focusHit(0); }
+  }
+
+  function focusHit(i) {
+    hits.forEach(function (m) { m.classList.remove('current'); });
+    var m = hits[i];
+    if (!m) return;
+    m.classList.add('current');
+    if (m.scrollIntoView) m.scrollIntoView({ block: 'center', behavior: 'auto' });
+    qMeta.textContent = (i + 1) + '/' + hits.length;
+  }
+
+  var timer = null;
+  q.addEventListener('input', function () {
+    clearTimeout(timer);
+    var v = q.value.trim();
+    timer = setTimeout(function () {
+      if (v && !searchLocked) { prevView = 'all'; setView('all'); searchLocked = true; }
+      if (!v) searchLocked = false;
+      runSearch(v);
+    }, 180);
+  });
+  q.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); next(); }
+  });
+  function next() {
+    if (!hits.length) return;
+    cur = (cur + 1) % hits.length;
+    focusHit(cur);
+  }
+  function prev() {
+    if (!hits.length) return;
+    cur = (cur - 1 + hits.length) % hits.length;
+    focusHit(cur);
+  }
+  document.getElementById('qNext').addEventListener('click', next);
+  document.getElementById('qPrev').addEventListener('click', prev);
+  document.getElementById('qClear').addEventListener('click', function () {
+    q.value = '';
+    runSearch('');
+    searchLocked = false;
+    setView(prevView);
+  });
+
+  /* ---------- 5. G 徽章跳转 ---------- */
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('.g-badge');
+    if (!b) return;
+    var id = b.getAttribute('data-g');
+    var el = id ? document.getElementById(id) : null;
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });
+  });
+
+  /* ---------- 6. 固定 1920×1080 预览，随可用宽度等比缩放 ---------- */
+  // 仅改变嵌入视图的视觉比例，不改变 iframe 内部布局视口；独立链接始终保留。
+  var previewViewports = Array.prototype.slice.call(document.querySelectorAll('.preview-viewport'));
+  var previewResizeRequest = null;
+
+  function resizePreviews() {
+    previewResizeRequest = null;
+    previewViewports.forEach(function (viewport) {
+      var frame = viewport.querySelector('iframe');
+      if (!frame) return;
+      var width = viewport.getBoundingClientRect().width;
+      if (width <= 0) {
+        viewport.removeAttribute('data-preview-ready');
+        return;
+      }
+      var scale = width / 1920;
+      frame.style.transform = 'scale(' + scale + ')';
+      viewport.setAttribute('data-preview-scale', String(scale));
+      viewport.setAttribute('data-preview-ready', 'true');
+    });
+  }
+
+  function schedulePreviewResize() {
+    if (previewResizeRequest !== null) return;
+    previewResizeRequest = window.requestAnimationFrame(resizePreviews);
+  }
+
+  function initPreviews() {
+    if (!previewViewports.length) return;
+    window.addEventListener('resize', schedulePreviewResize);
+    // 首次布局、容器缩放与 display:none 恢复都重新测量；不依赖 Mermaid/CDN 加载。
+    if (window.ResizeObserver) {
+      var previewObserver = new ResizeObserver(schedulePreviewResize);
+      previewViewports.forEach(function (viewport) { previewObserver.observe(viewport); });
+    }
+    if (window.MutationObserver) {
+      var ancestors = new Set();
+      previewViewports.forEach(function (viewport) {
+        var node = viewport;
+        while (node) { ancestors.add(node); node = node.parentElement; }
+      });
+      var visibilityObserver = new MutationObserver(schedulePreviewResize);
+      ancestors.forEach(function (node) {
+        visibilityObserver.observe(node, { attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open'] });
+        if (node.tagName === 'DETAILS') node.addEventListener('toggle', schedulePreviewResize);
+      });
+    }
+    schedulePreviewResize();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPreviews);
+  } else {
+    initPreviews();
+  }
+
+  /* ---------- 7. Mermaid 10.9.8（逐图错误兜底，失败不影响正文） ---------- */
+  var MERMAID_URL = 'https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.esm.min.mjs';
+
+  function setDiagramStatus(figEl, msg, isErr) {
+    var box = figEl.querySelector('.diagram-status');
+    if (!box) return;
+    box.textContent = msg;
+    box.classList.toggle('err', !!isErr);
+  }
+
+  async function renderDiagrams() {
+    var figs = Array.prototype.slice.call(document.querySelectorAll('figure[data-fig]'));
+    if (!figs.length) return;
+    if (document.documentElement.getAttribute('data-diagram-mode') === 'offline-svg') {
+      figs.forEach(function (f) { setDiagramStatus(f, '离线 SVG 模式：见内联图或同目录 .svg 文件', false); });
+      return;
+    }
+
+    var mermaid;
+    try {
+      var mod = await import(MERMAID_URL);
+      mermaid = mod.default || mod;
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'neutral',
+        securityLevel: 'strict',
+        flowchart: { htmlLabels: false }
+      });
+    } catch (e) {
+      figs.forEach(function (f) {
+        setDiagramStatus(f, '图表库加载失败或超时：请检查网络、CDN 可达性或浏览器策略，可改用离线版', true);
+      });
+      return;
+    }
+
+    for (var i = 0; i < figs.length; i++) {
+      var fig = figs[i];
+      var srcEl = fig.querySelector('pre.diagram code');
+      var target = fig.querySelector('.diagram-render');
+      if (!srcEl || !target) continue;
+      var id = 'mmd-' + (fig.getAttribute('data-fig') || i) + '-' + i;
+      try {
+        var out = await mermaid.render(id, srcEl.textContent);
+        target.innerHTML = out.svg;
+        setDiagramStatus(fig, '已渲染', false);
+      } catch (e) {
+        // 清理 mermaid 可能残留的临时节点
+        var junk = document.getElementById('d' + id) || document.getElementById(id);
+        if (junk && junk.parentNode) junk.parentNode.removeChild(junk);
+        target.innerHTML = '';
+        setDiagramStatus(fig, '图源解析/渲染失败：见图号 ' + (fig.getAttribute('data-fig') || i) + '，错误摘要：' + (e && e.message ? String(e.message).slice(0, 120) : '未确定'), true);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderDiagrams);
+  } else {
+    renderDiagrams();
+  }
+})();
+</script>
+</body>
+</html>
+<!-- OPC_DEVPLAN_COMPLETE -->
